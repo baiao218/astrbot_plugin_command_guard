@@ -1,0 +1,45 @@
+{
+  "enable": {
+    "description": "启用指令闸门",
+    "type": "bool",
+    "hint": "开启后，admins_id 以外的人发来的 AstrBot 指令一律不执行。",
+    "default": true
+  },
+  "on_block": {
+    "description": "指令被拦后怎么处理",
+    "type": "string",
+    "options": ["llm", "silent", "text"],
+    "hint": "llm：把消息当普通聊天交给人格回应（推荐，最自然）；silent：完全静默；text：回一句固定话术。",
+    "default": "llm"
+  },
+  "block_text": {
+    "description": "固定回话（on_block=text 时生效）",
+    "type": "string",
+    "hint": "可用 {command} 占位符表示被拦下的指令名。",
+    "default": "这条指令对我无效。"
+  },
+  "allow_group_admin": {
+    "description": "允许群管理员使用指令",
+    "type": "bool",
+    "hint": "只在群聊里生效，靠平台的 event.role 判断。私聊用不到——私聊只认 admins_id。",
+    "default": false
+  },
+  "block_regex": {
+    "description": "一并拦截正则型指令",
+    "type": "bool",
+    "hint": "有些插件用 @filter.regex 实现指令。开启后这类也拦。默认关闭，因为有插件用正则匹配普通聊天内容，开启可能误伤。",
+    "default": false
+  },
+  "skip_webchat": {
+    "description": "跳过 WebChat（面板里的测试对话）",
+    "type": "bool",
+    "hint": "留在面板里做调试时不会被自己拦住。",
+    "default": true
+  },
+  "log": {
+    "description": "记录拦截日志",
+    "type": "bool",
+    "hint": "会在日志里打印被拦截的发送者与指令名。",
+    "default": true
+  }
+}

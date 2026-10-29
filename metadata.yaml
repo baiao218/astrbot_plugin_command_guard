@@ -1,0 +1,79 @@
+name: astrbot_plugin_command_guard
+display_name: 指令闸门
+short_desc: 陌生人发来的 AstrBot 指令一律不执行——不只是回一句「权限不足」
+desc: |
+  补一个 AstrBot 自身的权限口子。
+
+  **问题**
+
+  内置指令的权限检查里有这样一段：
+
+  ```python
+  if self.permission_type == PermissionType.SHARED_GROUP_ADMIN and event.get_group_id():
+      return event.is_admin() or ...
+  return True          # ← 私聊时直接放行
+  ```
+
+  `GROUP_ADMIN` 与 `SHARED_GROUP_ADMIN` 两档都要求「有群号」，而私聊的
+  `get_group_id()` 是空的，于是条件不成立，直接落到 `return True`。
+  而负责清空上下文的 `reset` 正挂在 `SHARED_GROUP_ADMIN` 上——
+  加上私聊默认不需要唤醒前缀，任何好友打一句 `reset` 就能清掉你的记忆。
+
+  **做法**
+
+  在 `activated_handlers` 里把「指令类」处理器摘掉，其余原样保留：
+
+  - 指令不会执行 —— 不是被权限挡住，是根本没进执行队列
+  - 消息继续流向 LLM —— 她用当前人格的口吻回应，而不是冷冰冰的「权限不足」
+  - 其它插件的普通钩子（表情包、观测注入）不受影响
+
+  拦截点用 `priority=100000`，必须早于指令处理器。
+
+  **一个坑（v1.1.0 修）**
+
+  摘处理器必须**原地改列表**，不能 `set_extra` 换一个新列表：
+
+  ```python
+  # star_request.py 在进循环前就把这个列表绑定成局部变量了
+  activated_handlers = event.get_extra("activated_handlers")
+  for handler in activated_handlers:
+      ...
+  ```
+
+  `set_extra` 只改字典里的指向，`for` 循环握着的还是旧列表；再顺手 `list(...)`
+  复制一份的话，连旧列表都改不到。必须 `handlers[:] = kept`。v1.0.0 就是因为
+  这个原因「日志打印了拦截，指令照常执行」。
+
+  **注意**
+
+  这是「堵」而不是「修」。真正的根因在核心的权限判断里，插件只是站在前面挡住了。
+  如果你以后升级 AstrBot 发现官方修了这处，可以把本插件关掉。
+help: |
+  **命令（管理员）**
+
+  - `/闸门状态` —— 开关、拦截后的处理方式、本会话累计拦截次数
+  - `/闸门重置` —— 清零拦截计数
+
+  **`on_block` 三种模式**
+
+  | 模式 | 表现 | 适合 |
+  |---|---|---|
+  | `llm` | 指令被吞，消息当普通聊天交给人格 | 对外会话，最自然 |
+  | `silent` | 完全不回应 | 不想浪费 token |
+  | `text` | 回一句固定话术 | 想明确表态「指令无效」 |
+version: 1.1.0
+author: baiao218
+repo: https://github.com/baiao218/astrbot_plugin_command_guard
+astrbot_version: ">=4.17.0"
+support_platforms:
+  - aiocqhttp
+  - telegram
+  - qq_official
+  - lark
+  - discord
+social_link: https://github.com/baiao218
+tags:
+  - 权限
+  - 安全
+  - 指令
+  - 对外会话
