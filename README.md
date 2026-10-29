@@ -2,6 +2,29 @@
 
 陌生人发来的 AstrBot 指令一律不执行。
 
+## 安装
+
+在 AstrBot WebUI 的**插件市场**搜索「指令闸门」，或者：
+
+```bash
+cd AstrBot/data/plugins
+git clone https://github.com/baiao218/astrbot_plugin_command_guard.git
+```
+
+重启 AstrBot（或在插件页点「重载插件」）。
+
+### 前置条件
+
+1. **AstrBot ≥ 4.17.0**
+2. 平台不限：拦截逻辑走的是 AstrBot 自己的处理器队列，不依赖任何 OneBot 扩展接口
+3. 实际生效场景是**私聊**——群聊的权限判断本来就是对的，不需要它
+
+### 许可
+
+MIT，见 [LICENSE](LICENSE)。
+
+---
+
 ## 它补的是什么口子
 
 AstrBot 的指令权限里，`GROUP_ADMIN` 与 `SHARED_GROUP_ADMIN` 两档是这么判的：
